@@ -16,6 +16,7 @@ import com.ctre.phoenix.motion.*;
 import com.ctre.phoenix.motorcontrol.*;
 
 import edu.wpi.first.wpilibj.IterativeRobot;
+import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
@@ -37,8 +38,15 @@ public class Robot extends IterativeRobot {
 	TalonSRX backLeft = new TalonSRX(1);
 	TalonSRX backRight = new TalonSRX(2);
 	
+	Joystick _joy = new Joystick(0);
+	
+	//InterpreterL left = new InterpreterL(frontLeft);
+	//InterpreterR right = new InterpreterR(frontRight);
+	
 	MotionProfileExample test = new MotionProfileExample(frontLeft);
 
+	boolean[] _btnsLast = {false, false, false, false, false, false, false, false, false, false};
+	
 	/**
 	 * This function is run when the robot is first started up and should be
 	 * used for any initialization code.
@@ -55,23 +63,65 @@ public class Robot extends IterativeRobot {
 		backLeft.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative, 0, 30);
 		
 		frontLeft.setSensorPhase(false);
+		frontLeft.setInverted(true);
 		frontLeft.setStatusFramePeriod(StatusFrameEnhanced.Status_13_Base_PIDF0, 10, 30);
-		frontLeft.setStatusFramePeriod(StatusFrameEnhanced.Status_10_MotionMagic, 10, 30);
+		//frontLeft.setStatusFramePeriod(StatusFrameEnhanced.Status_10_MotionMagic, 10, 30);
 		frontLeft.configNominalOutputForward(0, 30);
 		frontLeft.configNominalOutputReverse(0, 30);
 		frontLeft.configPeakOutputForward(0.3, 30);
 		frontLeft.configPeakOutputReverse(-0.3, 30);
 		frontLeft.selectProfileSlot(0, 0);
-		frontLeft.config_kF(0, 0.2, 30);
-		frontLeft.config_kP(0, 0.2, 30);
+		frontLeft.config_kF(0, 2, 30);
+		frontLeft.config_kP(0, 0, 30);
 		frontLeft.config_kI(0, 0, 30);
 		frontLeft.config_kD(0, 0, 30);
+		
+		frontLeft.configMotionProfileTrajectoryPeriod(10, Constants.kTimeoutMs); 
+		
+		frontLeft.setStatusFramePeriod(StatusFrameEnhanced.Status_10_MotionMagic, 10, Constants.kTimeoutMs);
 		/* set acceleration and vcruise velocity - see documentation */
 		frontLeft.configMotionCruiseVelocity(15000, 30);
 		frontLeft.configMotionAcceleration(6000, 30);
+		
+		frontLeft.configVelocityMeasurementPeriod(VelocityMeasPeriod.Period_100Ms, 0); 
+		frontLeft.configVelocityMeasurementWindow(64, 0);     
+		
+		backLeft.follow(frontLeft);
 		/* zero the sensor */
 		frontLeft.setSelectedSensorPosition(0, 0, 30);
-
+		
+		frontRight.setSensorPhase(true);
+		frontRight.setInverted(true);
+		frontRight.setStatusFramePeriod(StatusFrameEnhanced.Status_13_Base_PIDF0, 10, 30);
+		frontRight.setStatusFramePeriod(StatusFrameEnhanced.Status_10_MotionMagic, 10, 30);
+		frontRight.configNominalOutputForward(0, 30);
+		frontRight.configNominalOutputReverse(0, 30);
+		frontRight.configPeakOutputForward(0.3, 30);
+		frontRight.configPeakOutputReverse(-0.3, 30);
+		frontRight.selectProfileSlot(0, 0);
+		frontRight.config_kF(0, 2, 30);
+		frontRight.config_kP(0, 0, 30);
+		frontRight.config_kI(0, 0, 30);
+		frontRight.config_kD(0, 0, 30);
+		
+		frontRight.configMotionProfileTrajectoryPeriod(10, Constants.kTimeoutMs); 
+		
+		frontRight.setStatusFramePeriod(StatusFrameEnhanced.Status_10_MotionMagic, 10, Constants.kTimeoutMs);
+		/* set acceleration and vcruise velocity - see documentation */
+		frontRight.configMotionCruiseVelocity(15000, 30);
+		frontRight.configMotionAcceleration(6000, 30);
+		backRight.setInverted(true);
+		backRight.follow(frontRight);
+		/* zero the sensor */
+		frontRight.setSelectedSensorPosition(0, 0, 30);
+		
+		frontRight.configVelocityMeasurementPeriod(VelocityMeasPeriod.Period_100Ms, 0); 
+		frontRight.configVelocityMeasurementWindow(64, 0);     
+		//left.control();
+		//right.control();
+		test.reset();
+		//test.startMotionProfile();
+		test.control();
 		//right.configSelectedFeedbackSensor(FeedbackDevice.QuadEncoder, 0, 30);
 		
 	}
@@ -100,15 +150,20 @@ public class Robot extends IterativeRobot {
 	 */
 	@Override
 	public void autonomousPeriodic() {
-		switch (m_autoSelected) {
-			case kCustomAuto:
-				// Put custom auto code here
-				break;
-			case kDefaultAuto:
-			default:
-				// Put default auto code here
-				break;
-		}
+		
+		
+		SmartDashboard.putNumber("Speed: ", frontLeft.getMotorOutputPercent());
+		SmartDashboard.putNumber("frontLeft Enc: ", frontLeft.getSelectedSensorPosition(0));
+		//double c = 814.873308631;
+		
+		
+		//frontLeft.set(ControlMode.MotionMagic, c * 15);
+		//delay(50);
+		
+		//delay(50);
+		//frontLeft.setSelectedSensorPosition(0, 0, 30);
+		//frontLeft.set(ControlMode.MotionMagic, c* -25);
+		
 	}
 
 	/**
@@ -121,20 +176,35 @@ public class Robot extends IterativeRobot {
 		
 			double c = 814.873308631;
 			
-			test.control();
+			//test.startMotionProfile();
 			
+			//left.start();
+			//SetValueMotionProfile lsetOutput = test.getSetValue();
 			
-			SetValueMotionProfile setOutput = test.getSetValue();
+			//right.start();
+			//SetValueMotionProfile rsetOutput = right.getSetValue();
 			
-			test.startMotionProfile();
+			dumpPoints(frontLeft, frontRight);
+			//dumpPointsL(frontLeft);
+			//dumpPointsR(frontRight);
+			
+			//frontLeft.set(ControlMode.MotionProfile, lsetOutput.value);
+			
+			//frontRight.set(ControlMode.MotionProfile, rsetOutput.value);
+			
+			//test.start();
+			
+			//SetValueMotionProfile setOutput = test.getSetValue();
+			
 			SmartDashboard.putNumber("Speed: ", frontLeft.getMotorOutputPercent());
 			SmartDashboard.putNumber("frontLeft Enc: ", frontLeft.getSelectedSensorPosition(0));
-			frontLeft.set(ControlMode.MotionProfile, setOutput.value);
-			//frontLeft.set(ControlMode.MotionMagic, c * 40);
+			SmartDashboard.putNumber("frontRight Enc: ", frontRight.getSelectedSensorPosition(0));
+			
+			//frontLeft.set(ControlMode.MotionProfile, setOutput);
 			
 			//SmartDashboard.putNumber("Right Enc:  ", right.getSelectedSensorPosition(0));
 		
-			//left.set(ControlMode.PercentOutput, 0.4);
+			//frontLeft.set(ControlMode.PercentOutput, 1.0);
 			
 		}
 		
@@ -145,5 +215,90 @@ public class Robot extends IterativeRobot {
 	 */
 	@Override
 	public void testPeriodic() {
+	}
+	
+	public void dumpPoints(TalonSRX left, TalonSRX right) {
+		
+		for(int i = 0; i < TestFile.TotalPoints; i++) {
+			
+			if((left.getSelectedSensorPosition(0)) < (TestFile.leftPoints[i][0] * Constants.kSensorUnitsPerRotation * 12)) {
+				
+				left.set(ControlMode.Velocity, TestFile.leftPoints[i][1] * 12 * (Constants.kSensorUnitsPerRotation/200));
+				SmartDashboard.putNumber("frontLeft Enc: ", frontLeft.getSelectedSensorPosition(0));
+				SmartDashboard.putNumber("Left MP Position: ", TestFile.leftPoints[i][0] * Constants.kSensorUnitsPerRotation * 12);
+				SmartDashboard.putNumber("frontLeft Vel: ", TestFile.leftPoints[i][1] * 12 * (Constants.kSensorUnitsPerRotation/200));
+				
+			}
+			
+			if((right.getSelectedSensorPosition(0)) < (TestFile.rightPoints[i][0] * Constants.kSensorUnitsPerRotation * 12)) {
+				
+				right.set(ControlMode.Velocity, TestFile.rightPoints[i][1] * 12 * (Constants.kSensorUnitsPerRotation/200));
+				SmartDashboard.putNumber("frontRight Enc: ", frontRight.getSelectedSensorPosition(0));
+				SmartDashboard.putNumber("Right MP Position: ", TestFile.rightPoints[i][0] * Constants.kSensorUnitsPerRotation * 12);
+				SmartDashboard.putNumber("frontRight Vel: ", TestFile.rightPoints[i][1] * 12 * (Constants.kSensorUnitsPerRotation/200));
+				
+			}
+			
+			left.set(ControlMode.PercentOutput, 0);
+			right.set(ControlMode.PercentOutput, 0);
+			//delay(50);
+			
+		}
+		
+	}
+	
+	public void dumpPointsL(TalonSRX talon) {
+			
+			for(int i = 0; i < TestFile.TotalPoints; i++) {
+				
+				while((talon.getSelectedSensorPosition(0)) < (TestFile.leftPoints[i][0] * Constants.kSensorUnitsPerRotation * 12)) {
+					
+					talon.set(ControlMode.Velocity, TestFile.leftPoints[i][1] * 12 * (Constants.kSensorUnitsPerRotation/200));
+					SmartDashboard.putNumber("frontLeft Enc: ", frontLeft.getSelectedSensorPosition(0));
+					SmartDashboard.putNumber("Left MP Position: ", TestFile.leftPoints[i][0] * Constants.kSensorUnitsPerRotation * 12);
+					SmartDashboard.putNumber("frontLeft Vel: ", TestFile.leftPoints[i][1] * 12 * (Constants.kSensorUnitsPerRotation/200));
+					
+				}
+				
+				talon.set(ControlMode.PercentOutput, 0);
+				//delay(50);
+				
+			}
+		
+	}
+
+	public void dumpPointsR(TalonSRX talon) {
+		
+		for(int i = 0; i < TestFile.TotalPoints; i++) {
+			
+			while((talon.getSelectedSensorPosition(0)) < (TestFile.rightPoints[i][0] * Constants.kSensorUnitsPerRotation * 12)) {
+				
+				talon.set(ControlMode.Velocity, TestFile.rightPoints[i][1] * 12 * (Constants.kSensorUnitsPerRotation/200));
+				SmartDashboard.putNumber("frontRight Enc: ", frontRight.getSelectedSensorPosition(0));
+				SmartDashboard.putNumber("Right MP Position: ", TestFile.rightPoints[i][0] * Constants.kSensorUnitsPerRotation * 12);
+				SmartDashboard.putNumber("frontRight Vel: ", TestFile.rightPoints[i][1] * 12 * (Constants.kSensorUnitsPerRotation/200));
+				
+			}
+			
+			talon.set(ControlMode.PercentOutput, 0);
+			//delay(50);
+			
+		}
+		
+	}
+	
+	public static void delay(int milliseconds) {
+		
+		try {
+			
+			Thread.sleep(milliseconds);
+			
+		}
+		catch(Exception e1){
+			
+			e1.printStackTrace();
+			
+		}
+		
 	}
 }
