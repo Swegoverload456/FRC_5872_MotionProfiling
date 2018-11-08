@@ -43,7 +43,7 @@ public class Robot extends IterativeRobot {
 	//InterpreterL left = new InterpreterL(frontLeft);
 	//InterpreterR right = new InterpreterR(frontRight);
 	
-	MotionProfileExample test = new MotionProfileExample(frontLeft);
+	//MotionProfileExample test = new MotionProfileExample(frontLeft);
 
 	boolean[] _btnsLast = {false, false, false, false, false, false, false, false, false, false};
 	
@@ -119,9 +119,9 @@ public class Robot extends IterativeRobot {
 		frontRight.configVelocityMeasurementWindow(64, 0);     
 		//left.control();
 		//right.control();
-		test.reset();
+		//test.reset();
 		//test.startMotionProfile();
-		test.control();
+		//test.control();
 		//right.configSelectedFeedbackSensor(FeedbackDevice.QuadEncoder, 0, 30);
 		
 	}
@@ -221,18 +221,33 @@ public class Robot extends IterativeRobot {
 		
 		for(int i = 0; i < TestFile.TotalPoints; i++) {
 			
-			if((left.getSelectedSensorPosition(0)) < (TestFile.leftPoints[i][0] * Constants.kSensorUnitsPerRotation * 12)) {
+			while((left.getSelectedSensorPosition(0)) < (TestFile.leftPoints[i][0] * Constants.kSensorUnitsPerRotation * 12) && (right.getSelectedSensorPosition(0)) < (TestFile.rightPoints[i][0] * Constants.kSensorUnitsPerRotation * 12)) {
 				
-				left.set(ControlMode.Velocity, TestFile.leftPoints[i][1] * 12 * (Constants.kSensorUnitsPerRotation/200));
+				if(left.getSelectedSensorPosition(0) >= (TestFile.leftPoints[i][0] * Constants.kSensorUnitsPerRotation * 12)) {
+					
+					left.set(ControlMode.PercentOutput, 0);
+					
+				}
+				else {
+					
+					left.set(ControlMode.Velocity, TestFile.leftPoints[i][1] * 12 * (Constants.kSensorUnitsPerRotation/200));
+					
+				}
+				
+				if(right.getSelectedSensorPosition(0) >= (TestFile.rightPoints[i][0] * Constants.kSensorUnitsPerRotation * 12)) {
+					
+					right.set(ControlMode.PercentOutput, 0);
+					
+				}
+				else {
+					
+					right.set(ControlMode.Velocity, TestFile.rightPoints[i][1] * 12 * (Constants.kSensorUnitsPerRotation/200));
+					
+				}
+				
 				SmartDashboard.putNumber("frontLeft Enc: ", frontLeft.getSelectedSensorPosition(0));
 				SmartDashboard.putNumber("Left MP Position: ", TestFile.leftPoints[i][0] * Constants.kSensorUnitsPerRotation * 12);
 				SmartDashboard.putNumber("frontLeft Vel: ", TestFile.leftPoints[i][1] * 12 * (Constants.kSensorUnitsPerRotation/200));
-				
-			}
-			
-			if((right.getSelectedSensorPosition(0)) < (TestFile.rightPoints[i][0] * Constants.kSensorUnitsPerRotation * 12)) {
-				
-				right.set(ControlMode.Velocity, TestFile.rightPoints[i][1] * 12 * (Constants.kSensorUnitsPerRotation/200));
 				SmartDashboard.putNumber("frontRight Enc: ", frontRight.getSelectedSensorPosition(0));
 				SmartDashboard.putNumber("Right MP Position: ", TestFile.rightPoints[i][0] * Constants.kSensorUnitsPerRotation * 12);
 				SmartDashboard.putNumber("frontRight Vel: ", TestFile.rightPoints[i][1] * 12 * (Constants.kSensorUnitsPerRotation/200));
